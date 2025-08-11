@@ -7,13 +7,12 @@ from fastapi.middleware.cors import CORSMiddleware
 load_dotenv()
 
 app = FastAPI()
-origins = [
-    "http://localhost:5173",
-    "https://your-frontend-domain.com",  # when deployed
-]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,          # or ["*"] for all
+    allow_origins=[
+        "https://llm-ui-eight.vercel.app",  # your frontend prod URL
+        "http://localhost:5173"             # optional, for local dev
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

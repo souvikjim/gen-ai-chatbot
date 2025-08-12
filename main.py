@@ -21,6 +21,7 @@ app.add_middleware(
 
 class PromptRequest(BaseModel):
     prompt: str
+    max_tokens: int | None = 500  # default is 500 if not given
 
 
 class QueryRequest(BaseModel):
@@ -43,7 +44,7 @@ def ask_llm(data: PromptRequest):
             {"role": "system", "content": "You are a helpful and friendly AI assistant."},
             {"role": "user", "content": data.prompt}
         ],
-        "max_tokens": 200,
+        "max_tokens": data.max_tokens or 500,
         "temperature": 0.7,
         "top_p": 0.9
     }

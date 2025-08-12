@@ -54,7 +54,7 @@ def ask_llm(data: PromptRequest):
 
 @app.post("/search")
 def search(query_request: QueryRequest):
-    query = query_request.query
+    query = query_request.prompt
     headers = {
         "Authorization": f"Bearer {TOGETHER_API_KEY}",
         "Content-Type": "application/json"

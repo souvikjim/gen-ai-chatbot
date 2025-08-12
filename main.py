@@ -39,14 +39,17 @@ def ask_llm(data: PromptRequest):
     }
     body = {
         "model": f"{MODEL_NAME}",
-        "prompt": data.prompt,
-        "max_tokens": 100,
+        "messages": [
+            {"role": "system", "content": "You are a helpful and friendly AI assistant."},
+            {"role": "user", "content": data.prompt}
+        ],
+        "max_tokens": 200,
         "temperature": 0.7,
         "top_p": 0.9
     }
 
     response = requests.post(
-        "https://api.together.xyz/v1/completions", headers=headers, json=body)
+        "https://api.together.xyz/v1/chat/completions", headers=headers, json=body)
     return {"response": response.json()}
 
 # Endpoint: /search
@@ -68,5 +71,5 @@ def search(query_request: QueryRequest):
     }
 
     response = requests.post(
-        "https://api.together.xyz/v1/completions", headers=headers, json=body)
+        "https://api.together.xyz/v1/chat/completions", headers=headers, json=body)
     return {"response": response.json()}

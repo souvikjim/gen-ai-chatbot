@@ -4,14 +4,16 @@ import os
 import requests
 from dotenv import load_dotenv
 from fastapi.middleware.cors import CORSMiddleware
+
 load_dotenv()
 
 app = FastAPI()
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "https://llm-ui-eight.vercel.app",  # your frontend prod URL
-        "http://localhost:5173"             # optional, for local dev
+        "http://localhost:5173"             # for local dev
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -21,56 +23,62 @@ app.add_middleware(
 
 class PromptRequest(BaseModel):
     prompt: str
-    max_tokens: int | None = 500  # default is 500 if not given
+    max_tokens: int | None = 500  # default 500
 
 
 class QueryRequest(BaseModel):
     prompt: str
 
 
-TOGETHER_API_KEY = os.getenv("TOGETHER_API_KEY")
-MODEL_NAME = os.getenv("MODEL_NAME")
+GENAI_API_KEY = os.getenv("GENAI_API_KEY")
+MODEL_NAME = os.getenv("MODEL_NAME")  # e.g. "gemini-2.0-flash"
+
+
+BASE_URL = "https://generativelanguage.googleapis.com/v1beta/models"
 
 
 @app.post("/ask_llm")
 def ask_llm(data: PromptRequest):
-    headers = {
-        "Authorization": f"Bearer {TOGETHER_API_KEY}",
-        "Content-Type": "application/json"
-    }
+    headers = {"Content-Type": "application/json"}
     body = {
-        "model": f"{MODEL_NAME}",
-        "messages": [
-            {"role": "system", "content": "You are a helpful and friendly AI assistant."},
-            {"role": "user", "content": data.prompt}
+        "contents": [
+            {"parts": [{"text": data.prompt}]}
         ],
-        "max_tokens": data.max_tokens or 500,
-        "temperature": 0.7,
-        "top_p": 0.9
+        "generationConfig": {
+            "maxOutputTokens": data.max_tokens or 500,
+            "temperature": 0.7,
+            "topP": 0.9
+        }
     }
 
     response = requests.post(
-        "https://api.together.xyz/v1/chat/completions", headers=headers, json=body)
+        f"{BASE_URL}/{MODEL_NAME}:generateContent?key={GENAI_API_KEY}",
+        headers=headers,
+        json=body
+    )
     return {"response": response.json()}
 
-# Endpoint: /search
 
 
 @app.post("/search")
 def search(query_request: QueryRequest):
-    query = query_request.prompt
-    headers = {
-        "Authorization": f"Bearer {TOGETHER_API_KEY}",
-        "Content-Type": "application/json"
-    }
+    headers = {"Content-Type": "application/json"}
     body = {
-        "model": "mistralai/Mixtral-8x7B-Instruct-v0.1",
-        "prompt": query,
-        "max_tokens": 100,
-        "temperature": 0.7,
-        "top_p": 0.9
+        "contents": [
+            {
+                "parts": [{"text": query_request.prompt}]
+            }
+        ],
+        "generationConfig": {
+            "maxOutputTokens": 100,
+            "temperature": 0.7,
+            "topP": 0.9
+        }
     }
 
     response = requests.post(
-        "https://api.together.xyz/v1/chat/completions", headers=headers, json=body)
+        f"{BASE_URL}/{MODEL_NAME}:generateContent?key={GENAI_API_KEY}",
+        headers=headers,
+        json=body
+    )
     return {"response": response.json()}

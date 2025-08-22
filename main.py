@@ -56,7 +56,13 @@ def ask_llm(data: PromptRequest):
         headers=headers,
         json=body
     )
-    return {"response": response.json()}
+    res_json = response.json()
+    try:
+        text = res_json["candidates"][0]["content"]["parts"][0]["text"]
+    except (KeyError, IndexError):
+        text = "No response from model."
+
+    return {"text": text, "raw": res_json}
 
 
 
@@ -81,4 +87,10 @@ def search(query_request: QueryRequest):
         headers=headers,
         json=body
     )
-    return {"response": response.json()}
+    res_json = response.json()
+    try:
+        text = res_json["candidates"][0]["content"]["parts"][0]["text"]
+    except (KeyError, IndexError):
+        text = "No response from model."
+
+    return {"text": text, "raw": res_json}
